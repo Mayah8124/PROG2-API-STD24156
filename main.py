@@ -1,83 +1,74 @@
-import json
+from urllib.request import Request
 from fastapi import FastAPI
+from pydantic import BaseModel
 from starlette.responses import Response
 from typing import List
 
 app = FastAPI()
 
-
-class SecretPayload(BaseModel):
-    secret_code: int = 12345678
-
-@app.get("/")
-def root(request: Request):
-    accept_header = request.headers.get("accept")
-    auth_header = request.headers.get("x-api-key")
-
-    if auth_header != "12345678":
-        return JSONResponse(
-            status_code=403,
-            content={"error": "API key not recognized"}
-        )
-    return Response(content=html_content, status_code=200, media_type="text/html")
-
-    if accept_header not in ["text/html", "text/plain"]:
-        return JSONResponse(content={'Bad Request'}, status_code=400)
-
-
-    with open("welcome.html", "r", encoding="utf-8") as file:
+#1st Question
+@app.get("/hello")
+def hello():
+    with open("hello.html", "r", encoding="utf-8") as file:
         html_content = file.read()
-    return Response(content=html_content, status_code=200, media_type="text/html")
+        return Response(content=html_content, status_code=200, media_type="text/html")
 
+#2nd Question
 
-@app.get("/{full_path:path}")
-def catch_all(full_path: str):
-    with open("new.html", "r", encoding="utf-8") as file
-        html_content= file.read()
-    return Response(content=html_content, status_code=404, media_type="text/html")
+@app.get("/welcome")
+def welcome(name:str):
+    return {'message': f'Welcome, {name}'}
 
+class Player(BaseModel):
+    Number : int
+    Name : str
 
-events_store: List[EventModel] = []
+player_list: List[Player] = []
 
-class EventModel(BaseModel):
-    name: str
-    description: str
-    start_date: str
-    end_date: str
+def serialized_player_list():
+    player_list_converted = []
+    for player in player_list:
+        player_list_converted.append(player.model_dump())
+    return player_list_converted
 
+#3rd Question
+@app.post("/players")
+def post_players(new_player_list : List[Player]):
+    for new_player in new_player_list:
+        player_list.append(new_player)
+    return Response(content=serialized_player_list(), status_code=201 , media_type="application/json")
 
-def serialized_stored_events():
-    events_converted = []
-    for event in events_store:
-        events_converted.append(event.model_dump())
-    return events_converted
+#4th Question
+@app.get("/players")
+def get_players():
+    return Response(content=serialized_player_list(), status_code=200, media_type="application/json")
 
-
-@app.get("/events")
-def list_events():
-return {"events": serialized_stored_events()}
-
-
-@app.post("/events")
-def add_events(new_events: List[EventModel]):
-    events_store.extend(new_events)
-    return {"events": serialized_stored_events()}
-
-
-@app.put("/events")
-def update_events(updated_events: List[EventModel]):
-
-    for updated_event in updated_events:
+#5th Question
+@app.put("/players")
+async def update_players(new_player_list : List[Player]):
+    for updated_player in new_player_list:
         found = False
-        for stored_event in events_store:
-            if stored_event.name == updated_event.name:
-                i = events_store.index(stored_event)
-                events_store.remove(stored_event)
-                events_store.insert(i, updated_event)
+        for stored_player in player_list:
+            if stored_player.Number == updated_player.Number:
+                i = player_list.index(stored_player)
+                player_list[i] = updated_player
+                player_list.insert(i, updated_player)
                 found = True
                 break
         if not found:
-            events_store.append(updated_event)
+            player_list.append(updated_player)
+    return Response(content=serialized_player_list(), status_code=200 , media_type="application/json")
 
-    return {"events": serialized_stored_events()}
+#6th question
+#in the postman file
 
+#Bonus Question
+@app.get("players-authorized")
+def get_player_list(request : Request):
+    authorization_value = request.headers.get("Authorization")
+    if authorization_value is None:
+        return Response(content={"message":"You are not authorized to have access to the demanded resource."},status_code=401,media_type="application/json")
+    elif authorization_value != "bon courage":
+        return Response(content={"message":"You do not have the necessary permissions to access the demanded resource"},status_code=403,media_type="application/json")
+    else:
+        return Response(content={"players" : serialized_player_list()},status_code=200,media_type="application/json")
