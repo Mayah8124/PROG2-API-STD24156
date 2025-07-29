@@ -80,7 +80,7 @@ async def update_players(new_player_list : List[Player]):
 
 #Bonus Question
 @app.get("/players-authorized")
-def update_player_list(request: Request):  # Utilise le Request de FastAPI
+def update_player_list(request: Request):
     authorization_value = request.headers.get("Authorization")
     if authorization_value is None:
         return Response(
