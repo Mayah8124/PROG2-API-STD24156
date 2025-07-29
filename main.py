@@ -1,5 +1,5 @@
 from urllib.request import Request
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from pydantic import BaseModel
 from starlette.responses import Response
 from typing import List
@@ -11,7 +11,11 @@ app = FastAPI()
 def hello():
     with open("hello.html", "r", encoding="utf-8") as file:
         html_content = file.read()
-        return Response(content=html_content, status_code=200, media_type="text/html")
+        return Response(
+            content=html_content,
+            status_code=200,
+            media_type="text/html"
+        )
 
 #2nd Question
 
@@ -36,12 +40,20 @@ def serialized_player_list():
 def post_players(new_player_list : List[Player]):
     for new_player in new_player_list:
         player_list.append(new_player)
-    return Response(content=serialized_player_list(), status_code=201 , media_type="application/json")
+    return Response(
+        content=serialized_player_list(),
+        status_code=201 ,
+        media_type="application/json"
+    )
 
 #4th Question
 @app.get("/players")
 def get_players():
-    return Response(content=serialized_player_list(), status_code=200, media_type="application/json")
+    return Response(
+        content=serialized_player_list(),
+        status_code=200,
+        media_type="application/json"
+    )
 
 #5th Question
 @app.put("/players")
@@ -57,18 +69,34 @@ async def update_players(new_player_list : List[Player]):
                 break
         if not found:
             player_list.append(updated_player)
-    return Response(content=serialized_player_list(), status_code=200 , media_type="application/json")
+    return Response(
+        content=serialized_player_list(),
+        status_code=200 ,
+        media_type="application/json"
+    )
 
 #6th question
 #in the postman file
 
 #Bonus Question
-@app.get("players-authorized")
-def get_player_list(request : Request):
+@app.get("/players-authorized")
+def update_player_list(request: Request):  # Utilise le Request de FastAPI
     authorization_value = request.headers.get("Authorization")
     if authorization_value is None:
-        return Response(content={"message":"You are not authorized to have access to the demanded resource."},status_code=401,media_type="application/json")
+        return Response(
+            content={"message": "You are not authorized to have access to the demanded resource."},
+            status_code=401,
+            media_type="application/json"
+        )
     elif authorization_value != "bon courage":
-        return Response(content={"message":"You do not have the necessary permissions to access the demanded resource"},status_code=403,media_type="application/json")
+        return Response(
+            content={"message": "You do not have the necessary permissions to access the demanded resource"},
+            status_code=403,
+            media_type="application/json"
+        )
     else:
-        return Response(content={"players" : serialized_player_list()},status_code=200,media_type="application/json")
+        return Response(
+            content={"players": serialized_player_list()},
+            status_code=200,
+            media_type="application/json"
+        )
