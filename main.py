@@ -1,3 +1,4 @@
+import json
 from urllib.request import Request
 from fastapi import FastAPI, Request, Response
 from pydantic import BaseModel
@@ -21,7 +22,11 @@ def hello():
 
 @app.get("/welcome")
 def welcome(name:str):
-    return {'message': f'Welcome, {name}'}
+    return Response(
+        content=json.dumps({"message":f"Welcome {name}"}),
+        status_code=200,
+        media_type="application/json"
+    )
 
 class Player(BaseModel):
     Number : int
@@ -41,8 +46,8 @@ def post_players(new_player_list : List[Player]):
     for new_player in new_player_list:
         player_list.append(new_player)
     return Response(
-        content=serialized_player_list(),
-        status_code=201 ,
+        content=json.dumps({"players":serialized_player_list()}),
+        status_code=201,
         media_type="application/json"
     )
 
@@ -50,7 +55,7 @@ def post_players(new_player_list : List[Player]):
 @app.get("/players")
 def get_players():
     return Response(
-        content=serialized_player_list(),
+        content=json.dumps({"players":serialized_player_list()}),
         status_code=200,
         media_type="application/json"
     )
@@ -70,7 +75,7 @@ async def update_players(new_player_list : List[Player]):
         if not found:
             player_list.append(updated_player)
     return Response(
-        content=serialized_player_list(),
+        content=json.dumps({"players":serialized_player_list()}),
         status_code=200 ,
         media_type="application/json"
     )
@@ -84,19 +89,19 @@ def update_player_list(request: Request):
     authorization_value = request.headers.get("Authorization")
     if authorization_value is None:
         return Response(
-            content={"message": "You are not authorized to have access to the demanded resource."},
+            content=json.dumps({"message": "You are not authorized to have access to the demanded resource."}),
             status_code=401,
             media_type="application/json"
         )
     elif authorization_value != "bon courage":
         return Response(
-            content={"message": "You do not have the necessary permissions to access the demanded resource"},
+            content=json.dumps({"message": "You do not have the necessary permissions to access the demanded resource"}),
             status_code=403,
             media_type="application/json"
         )
     else:
         return Response(
-            content={"players": serialized_player_list()},
+            content=json.dumps({"players": serialized_player_list()}),
             status_code=200,
             media_type="application/json"
         )
