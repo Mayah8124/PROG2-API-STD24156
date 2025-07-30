@@ -19,11 +19,10 @@ def hello():
         )
 
 #2nd Question
-
 @app.get("/welcome")
-def welcome(name:str):
+def welcome(name: str):
     return Response(
-        content=json.dumps({"message":f"Welcome {name}"}),
+        content=json.dumps({"message": f"Welcome {name}"}),
         status_code=200,
         media_type="application/json"
     )
@@ -42,11 +41,12 @@ def serialized_player_list():
 
 #3rd Question
 @app.post("/players")
-def post_players(new_player_list : List[Player]):
+def post_players(new_player_list: List[Player]):
     for new_player in new_player_list:
         player_list.append(new_player)
+    serialized_players = serialized_player_list()
     return Response(
-        content=json.dumps({"players":serialized_player_list()}),
+        content=json.dumps({"players": serialized_players}),
         status_code=201,
         media_type="application/json"
     )
